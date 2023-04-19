@@ -6,7 +6,29 @@ const express               =  require('express'),
       bodyParser            =  require("body-parser"),
       LocalStrategy         =  require("passport-local"),
       passportLocalMongoose =  require("passport-local-mongoose"),
-      User                  =  require("./models/user")
+      User                  =  require("./models/user"),
+      mongoSanitize         = require("express-mongo-sanitize"),
+      rateLimit = require("express-rate-limit"),
+      xss = require("xss-clean"),
+      helmet = require("helmet");
+
+      //Data sanitization againes nosql injection attacks
+
+      app.use(mongoSanitize());
+
+      const limit=rateLimit({
+        max:100,
+        windowMs:60*60*1000,
+        message:"Too many requests"
+      });
+      
+      app.use('/routName',limit);
+
+      app.use(express.json({limit:'10kb'}));
+
+      app.use(xss());
+
+      app.use(helmet());
 
 //Connecting database
 mongoose.connect("mongodb://localhost/auth_demo");
